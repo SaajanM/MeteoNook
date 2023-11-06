@@ -7,7 +7,7 @@ export function makeDayMonth(day: number, month: number): Date {
 	return new Date(2020, month - 1, day, 5, 0, 0)
 }
 
-export function readStorageObject<T>(key: string, validCallback?: (value: T) => boolean): T|null {
+export function readStorageObject<T>(key: string, validCallback?: (value: T) => boolean): T | null {
 	try {
 		const blob = window.localStorage.getItem(key)
 		if (blob !== null) {
@@ -23,7 +23,7 @@ export function readStorageObject<T>(key: string, validCallback?: (value: T) => 
 	return null
 }
 
-export function readStorage<T>(key: string, decodeCallback: (blob: string) => T|null): T|null {
+export function readStorage<T>(key: string, decodeCallback: (blob: string) => T | null): T | null {
 	try {
 		const blob = window.localStorage.getItem(key)
 		if (blob !== null) {
@@ -32,8 +32,8 @@ export function readStorage<T>(key: string, decodeCallback: (blob: string) => T|
 	} catch (ex) {
 		console.log('error decoding ' + key)
 		console.log(ex)
-    }
-    return null
+	}
+	return null
 }
 
 export function writeStorageObject<T>(key: string, obj: T) {
@@ -52,3 +52,9 @@ export function writeStorage(key: string, blob: string) {
 	}
 }
 
+export function kebabToTitle(text: string): string {
+	return text.split('-').map(word => {
+		return word.slice(0, 1).toUpperCase() + word.slice(1)
+	})
+		.join(' ')
+}

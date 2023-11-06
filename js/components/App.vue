@@ -1,92 +1,85 @@
 <template>
-<div>
-	<b-navbar variant='light' toggleable='md'>
-		<b-container>
-			<b-navbar-brand tag='span'>MeteoNook Alpha</b-navbar-brand>
-			<b-dropdown id='dropdown-settings' :text="$t('mSettings')" ref='dropdown' right>
-				<b-dropdown-header>{{ $t('mTimeFormat') }}</b-dropdown-header>
-				<b-dropdown-item-button :active='time12' @click='setTime12'>{{ $t('mTime12') }}</b-dropdown-item-button>
-				<b-dropdown-item-button :active='!time12' @click='setTime24'>{{ $t('mTime24') }}</b-dropdown-item-button>
-				<b-dropdown-divider></b-dropdown-divider>
-				<b-dropdown-header>{{ $t('mLanguage') }}</b-dropdown-header>
-				<b-dropdown-item-button
-					v-for='lang in languages'
-					:active='lang == currentLanguage'
-					:key='lang'
-					@click='setLanguage(lang)'
-				>
-					{{ getLanguageName(lang) }}
-				</b-dropdown-item-button>
-			</b-dropdown>
+	<div>
+		<b-navbar variant='light' toggleable='md'>
+			<b-container>
+				<b-navbar-brand tag='span'>MeteoNook Alpha</b-navbar-brand>
+				<b-dropdown id='dropdown-settings' :text="$t('mSettings')" ref='dropdown' right>
+					<b-dropdown-header>{{ $t('mTimeFormat') }}</b-dropdown-header>
+					<b-dropdown-item-button :active='time12' @click='setTime12'>{{ $t('mTime12') }}</b-dropdown-item-button>
+					<b-dropdown-item-button :active='!time12' @click='setTime24'>{{ $t('mTime24')
+					}}</b-dropdown-item-button>
+					<b-dropdown-divider></b-dropdown-divider>
+					<b-dropdown-header>{{ $t('mLanguage') }}</b-dropdown-header>
+					<b-dropdown-item-button v-for='lang in languages' :active='lang == currentLanguage' :key='lang'
+						@click='setLanguage(lang)'>
+						{{ getLanguageName(lang) }}
+					</b-dropdown-item-button>
+				</b-dropdown>
+			</b-container>
+		</b-navbar>
+
+		<b-container fluid='md'>
+			<b-tabs class='mt-2 mx-0' content-class='mt-3'>
+				<b-tab :title="$t('hTab')" :active='!hasIslandAtLoad'>
+					<welcome-page></welcome-page>
+				</b-tab>
+				<b-tab :title="$t('sTab')">
+					<seed-finder @preview-seed='setPreviewSeedFromFinder' @show-day='showDayModal'>
+					</seed-finder>
+				</b-tab>
+				<b-tab :title="$t('oTab')" :active='hasIslandAtLoad' ref='overviewTab'>
+					<forecast-overview ref='overview' :forecast='forecast' :stored-islands='storedIslands'
+						:active-island='currentIsland' @add-island='addIslandAndMakeCurrent'
+						@update-island='updateCurrentIsland' @set-preview-island='setPreviewIsland'
+						@select-island='selectIsland' @remove-island='removeIsland' @cancel-preview='cancelPreviewIsland'
+						@show-day='showDayModal'>
+					</forecast-overview>
+				</b-tab>
+				<b-tab :title="$t('yTab')">
+					<yearly-view :forecast='forecast' @switch-to-monthly='switchToMonthly'></yearly-view>
+				</b-tab>
+				<b-tab :title="$t('mTab')" ref='monthlyTab'>
+					<monthly-view :forecast='forecast' :month='forecast.currentMonth'
+						@show-day='showDayModal'></monthly-view>
+				</b-tab>
+				<b-tab title="Export">
+					<export-view :forecast='forecast'>
+
+					</export-view>
+				</b-tab>
+			</b-tabs>
+
+			<footer class='my-5 pt-2 border-top text-muted'>
+				<p class='mb-2'>
+					<i18n tag='span' path='footerCopy'>
+						<template v-slot:me>Ash Wolf (<a href='https://twitter.com/_Ninji'>@_Ninji</a>)</template>
+						<template v-slot:year>2020</template>
+					</i18n>
+					<b-link href='#' v-b-modal.credits-modal>{{ $t('credTitle') }}</b-link>
+				</p>
+				<p class='mb-2'>
+					{{ $t('footerDonate') }}
+					<a href='https://paypal.me/trashcurl'>PayPal.me</a>
+					|
+					<a href='https://ko-fi.com/ninji_'>Ko-fi</a>
+					|
+					<a href='https://monzo.me/ninji'>Monzo</a> (UK)
+				</p>
+				<p>
+					{{ $t('footerVersion') }}
+					<a :href='gitCommitUrl'>{{ gitCommitShort }}</a> ({{ gitCommitStamp }})
+				</p>
+			</footer>
 		</b-container>
-	</b-navbar>
 
-	<b-container fluid='md'>
-		<b-tabs class='mt-2 mx-0' content-class='mt-3'>
-			<b-tab :title="$t('hTab')" :active='!hasIslandAtLoad'>
-				<welcome-page></welcome-page>
-			</b-tab>
-			<b-tab :title="$t('sTab')">
-				<seed-finder
-					@preview-seed='setPreviewSeedFromFinder'
-					@show-day='showDayModal'
-					>
-				</seed-finder>
-			</b-tab>
-			<b-tab :title="$t('oTab')" :active='hasIslandAtLoad' ref='overviewTab'>
-				<forecast-overview
-					ref='overview'
-					:forecast='forecast'
-					:stored-islands='storedIslands'
-					:active-island='currentIsland'
-					@add-island='addIslandAndMakeCurrent'
-					@update-island='updateCurrentIsland'
-					@set-preview-island='setPreviewIsland'
-					@select-island='selectIsland'
-					@remove-island='removeIsland'
-					@cancel-preview='cancelPreviewIsland'
-					@show-day='showDayModal'
-					>
-				</forecast-overview>
-			</b-tab>
-			<b-tab :title="$t('yTab')">
-				<yearly-view :forecast='forecast' @switch-to-monthly='switchToMonthly'></yearly-view>
-			</b-tab>
-			<b-tab :title="$t('mTab')" ref='monthlyTab'>
-				<monthly-view :forecast='forecast' :month='forecast.currentMonth' @show-day='showDayModal'></monthly-view>
-			</b-tab>
-		</b-tabs>
+		<day-modal id='dayModal' :forecast='forecast' :day='dayModalData'></day-modal>
+		<b-modal id='confirmationModal' :title="$t('warningTitle')" @ok='confirmDeletion' :ok-title="$t('warningOK')"
+			:cancel-title="$t('warningCancel')">
+			<p class='my-4'>{{ $t('warningMessage', [currentIsland.name]) }}</p>
+		</b-modal>
 
-		<footer class='my-5 pt-2 border-top text-muted'>
-			<p class='mb-2'>
-				<i18n tag='span' path='footerCopy'>
-					<template v-slot:me>Ash Wolf (<a href='https://twitter.com/_Ninji'>@_Ninji</a>)</template>
-					<template v-slot:year>2020</template>
-				</i18n>
-				<b-link href='#' v-b-modal.credits-modal>{{ $t('credTitle') }}</b-link>
-			</p>
-			<p class='mb-2'>
-				{{ $t('footerDonate') }}
-				<a href='https://paypal.me/trashcurl'>PayPal.me</a>
-				|
-				<a href='https://ko-fi.com/ninji_'>Ko-fi</a>
-				|
-				<a href='https://monzo.me/ninji'>Monzo</a> (UK)
-			</p>
-			<p>
-				{{ $t('footerVersion') }}
-				<a :href='gitCommitUrl'>{{ gitCommitShort }}</a> ({{ gitCommitStamp }})
-			</p>
-		</footer>
-	</b-container>
-
-	<day-modal id='dayModal' :forecast='forecast' :day='dayModalData'></day-modal>
-	<b-modal id='confirmationModal' :title="$t('warningTitle')" @ok='confirmDeletion' :ok-title="$t('warningOK')" :cancel-title="$t('warningCancel')">
-		<p class='my-4'>{{ $t('warningMessage', [currentIsland.name]) }}</p>
-	</b-modal>
-
-	<credits-modal id='credits-modal'></credits-modal>
-</div>
+		<credits-modal id='credits-modal'></credits-modal>
+	</div>
 </template>
 
 <script lang='ts'>
@@ -101,6 +94,7 @@ import SeedFinder from './SeedFinder.vue'
 import ForecastOverview from './ForecastOverview.vue'
 import YearlyView from './YearlyView.vue'
 import MonthlyView from './MonthlyView.vue'
+import ExportView from './ExportView.vue'
 import DayModal from './DayModal.vue'
 import CreditsModal from './CreditsModal.vue'
 import { Forecast, DayForecast, Hemisphere, IslandInfo } from '../model'
@@ -112,13 +106,13 @@ import { Watch } from 'vue-property-decorator'
 interface IslandInfoHolder {
 	version: number,
 	islands: IslandInfo[],
-	currentIndex: number|null
+	currentIndex: number | null
 }
 
 function loadIslands(): IslandInfoHolder {
 	let info = readStorageObject<IslandInfoHolder>('meteonook_islands', (iih) => iih.version == 2)
 	if (info === null) {
-		info = {version: 2, islands: [], currentIndex: null}
+		info = { version: 2, islands: [], currentIndex: null }
 	}
 
 	const islands = info.islands
@@ -163,7 +157,7 @@ function loadIslands(): IslandInfoHolder {
 	return info
 }
 
-function saveIslands(islands: IslandInfo[], currentIndex: number|null) {
+function saveIslands(islands: IslandInfo[], currentIndex: number | null) {
 	const info: IslandInfoHolder = {
 		version: 2, islands, currentIndex
 	}
@@ -171,9 +165,9 @@ function saveIslands(islands: IslandInfo[], currentIndex: number|null) {
 }
 
 
-@Component({components: {WelcomePage, SeedFinder, YearlyView, MonthlyView, ForecastOverview, DayModal, CreditsModal}})
+@Component({ components: { WelcomePage, SeedFinder, YearlyView, MonthlyView, ForecastOverview, ExportView, DayModal, CreditsModal } })
 export default class App extends Vue {
-	currentIslandIndex!: number|null
+	currentIslandIndex!: number | null
 	previewIsland!: IslandInfo
 	storedIslands!: IslandInfo[]
 	forecast!: Forecast
@@ -241,7 +235,7 @@ export default class App extends Vue {
 		else
 			return this.currentIsland
 	}
-	selectIsland(index: number|null, forceSave?: boolean) {
+	selectIsland(index: number | null, forceSave?: boolean) {
 		if (index !== this.currentIslandIndex || forceSave) {
 			this.currentIslandIndex = index
 			saveIslands(this.storedIslands, this.currentIslandIndex)
@@ -299,11 +293,11 @@ export default class App extends Vue {
 		return this.$d(d, 'dateTimeHMS')
 	}
 
-	@Watch('forecast.islandName', {immediate: true})
+	@Watch('forecast.islandName', { immediate: true })
 	@Watch('$i18n.locale')
 	syncIslandNameToTitle() {
 		if (this.forecast.islandName !== 'Anyisle')
-			document.title = this.$t('title', {island: this.forecast.islandName}) as string
+			document.title = this.$t('title', { island: this.forecast.islandName }) as string
 	}
 }
 </script>

@@ -1,8 +1,8 @@
 export enum DayType { NoData = 0, None, Shower, Rainbow, Aurora }
 export enum ShowerType { NotSure = 0, Light, Heavy }
 
-import {Hemisphere, Weather, SpecialDay, getMonthLength, Pattern, getPattern, getWeather, getWindPower, isSpecialDay, SnowLevel, CloudLevel, FogLevel, getSnowLevel, getCloudLevel, getFogLevel, checkWaterFog, getRainbowInfo, isAuroraPattern, fromLinearHour, toLinearHour, canHaveShootingStars, queryStars, getStarSecond, isLightShowerPattern, isHeavyShowerPattern, isPatternPossibleAtDate, GuessData, getPatternKind, PatternKind, SpWeatherLevel, getSpWeatherLevel, Constellation, getConstellation, getWindPowerMin, getWindPowerMax, getSpecialCloudInfo, SpecialCloud} from '../pkg'
-export {Hemisphere, Weather, SpecialDay, getMonthLength}
+import { Hemisphere, Weather, SpecialDay, getMonthLength, Pattern, getPattern, getWeather, getWindPower, isSpecialDay, SnowLevel, CloudLevel, FogLevel, getSnowLevel, getCloudLevel, getFogLevel, checkWaterFog, getRainbowInfo, isAuroraPattern, fromLinearHour, toLinearHour, canHaveShootingStars, queryStars, getStarSecond, isLightShowerPattern, isHeavyShowerPattern, isPatternPossibleAtDate, GuessData, getPatternKind, PatternKind, SpWeatherLevel, getSpWeatherLevel, Constellation, getConstellation, getWindPowerMin, getWindPowerMax, getSpecialCloudInfo, SpecialCloud } from '../pkg'
+export { Hemisphere, Weather, SpecialDay, getMonthLength }
 
 export enum AmbiguousWeather {
 	ClearOrSunny = 95,
@@ -13,7 +13,7 @@ export enum AmbiguousWeather {
 }
 
 export interface WeatherTypeInfo {
-	time: number, type: Weather|AmbiguousWeather, specialCloud: boolean|null
+	time: number, type: Weather | AmbiguousWeather, specialCloud: boolean | null
 }
 export interface StarInfo {
 	hour: number, minute: number, seconds: number[]
@@ -64,7 +64,7 @@ export const firstPattern: Pattern = Pattern.Fine00
 export const maxPattern: Pattern = Pattern.EventDay00
 
 
-function checkTypeMatch(realType: Weather, expected: Weather|AmbiguousWeather): boolean {
+function checkTypeMatch(realType: Weather, expected: Weather | AmbiguousWeather): boolean {
 	switch (expected) {
 		case AmbiguousWeather.ClearOrSunny:
 			return realType == Weather.Clear || realType == Weather.Sunny
@@ -81,7 +81,7 @@ function checkTypeMatch(realType: Weather, expected: Weather|AmbiguousWeather): 
 	}
 }
 
-function getOldWeather(hour: number, pat: Pattern): Weather|undefined {
+function getOldWeather(hour: number, pat: Pattern): Weather | undefined {
 	if (pat == Pattern.Fine02) {
 		// Pre-v1.3.0
 		if (hour == 18) return Weather.Sunny
@@ -112,7 +112,7 @@ const cirrusPatterns = [
 	PatternKind.EventDay
 ]
 
-export function isSpecialCloudEntryAllowed(claimedWeather: Weather|AmbiguousWeather, cloudLevel: CloudLevel, hour: number): boolean {
+export function isSpecialCloudEntryAllowed(claimedWeather: Weather | AmbiguousWeather, cloudLevel: CloudLevel, hour: number): boolean {
 	if (claimedWeather != Weather.Clear && claimedWeather != Weather.Sunny && claimedWeather != AmbiguousWeather.ClearOrSunny)
 		return false
 
@@ -153,7 +153,7 @@ function checkPatternAgainstTypes(pat: Pattern, cloudLevel: CloudLevel, types: W
 }
 
 
-export const rainbowPatternsByTime: {[hour: number]: Pattern} = {
+export const rainbowPatternsByTime: { [hour: number]: Pattern } = {
 	10: Pattern.CloudFine00,
 	12: Pattern.CloudFine02,
 	13: Pattern.CloudFine01,
@@ -224,7 +224,7 @@ export interface PopulateError {
 export function populateGuessData(hemisphere: Hemisphere, data: GuessData, day: DayInfo): PopulateError | undefined {
 	const patterns = getPossiblePatternsForDay(hemisphere, day)
 	if (patterns.length == 0)
-		return {kind: PopulateErrorKind.NoPatterns}
+		return { kind: PopulateErrorKind.NoPatterns }
 
 	for (const pattern of patterns) {
 		data.addPattern(day.y, day.m, day.d, pattern)
@@ -254,11 +254,11 @@ export function populateGuessData(hemisphere: Hemisphere, data: GuessData, day: 
 		// cirrus, billow and thin clouds must show up in a contiguous group
 		for (let hour = cloudMinHour; hour < cloudMaxHour; hour++) {
 			if ((cloudFalseMask & (1 << (hour % 24))) !== 0)
-				return {kind: PopulateErrorKind.SpecialCloudGap}
+				return { kind: PopulateErrorKind.SpecialCloudGap }
 		}
 		const hourCount = (cloudMaxHour - cloudMinHour) + 1
 		if (hourCount > 8)
-			return {kind: PopulateErrorKind.SpecialCloudTooLong, hourCount}
+			return { kind: PopulateErrorKind.SpecialCloudTooLong, hourCount }
 	}
 
 	if (day.dayType == DayType.Rainbow)
@@ -275,10 +275,10 @@ export function populateGuessData(hemisphere: Hemisphere, data: GuessData, day: 
 		for (const gap of day.gaps) {
 			const endLH = toLinearHour(gap.endHour)
 			const endMinute = gap.endMinute
-			for (let lh = toLinearHour(gap.startHour), minute = gap.startMinute; lh < endLH || (lh == endLH && minute <= endMinute); ) {
+			for (let lh = toLinearHour(gap.startHour), minute = gap.startMinute; lh < endLH || (lh == endLH && minute <= endMinute);) {
 				const hour = fromLinearHour(lh)
 				if (!data.addMinute(day.y, day.m, day.d, hour, minute, false)) {
-					return {kind: PopulateErrorKind.StarConflict, hour, minute}
+					return { kind: PopulateErrorKind.StarConflict, hour, minute }
 				}
 				minute++
 				if (minute == 60) {
@@ -299,7 +299,7 @@ export class IslandInfo {
 	seed: number
 	offsetMinutes: number
 
-	constructor(other?: IslandInfo|string) {
+	constructor(other?: IslandInfo | string) {
 		if (other === undefined) {
 			this.hemisphere = Hemisphere.Northern
 			this.name = 'Anyisle'
@@ -415,6 +415,12 @@ export class Forecast {
 		now.setTime(now.getTime() + this.island.offsetMinutes * 60_000 - 5 * 3600_000)
 		return now
 	}
+
+	add5hr(date: Date): Date {
+		const now = new Date(date)
+		now.setTime(now.getTime() + this.island.offsetMinutes * 60_000 + 5 * 3600_000)
+		return now
+	}
 }
 
 
@@ -525,7 +531,7 @@ export class DayForecast {
 
 	constructor(
 		readonly hemisphere: Hemisphere,
-		readonly seed: number|null,
+		readonly seed: number | null,
 		readonly year: number,
 		readonly month: number,
 		readonly day: number,
@@ -630,7 +636,7 @@ export class DayForecast {
 					for (let minute = 0; minute < 60; minute++) {
 						const starCount = queryStars(seed, year, month, day, hour, minute, this.pattern)
 						if (starCount > 0) {
-							const star: StarInfo = {hour, minute, seconds: []}
+							const star: StarInfo = { hour, minute, seconds: [] }
 							for (let i = 0; i < starCount; i++) {
 								star.seconds.push(getStarSecond(i))
 							}
