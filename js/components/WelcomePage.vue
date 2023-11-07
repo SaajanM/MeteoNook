@@ -1,7 +1,11 @@
 <template>
 	<div>
 		<h2 class='mt-3'>{{ $t('hTWelcome') }}</h2>
-		<div v-html="$t('hWelcome', {version: compatVersion})"></div>
+		<b-alert show>
+			This is not the official MeteoNook. If you wish to view the official and original site please visit it here: <a
+				href="https://wuffs.org/acnh/weather/">https://wuffs.org/acnh/weather/</a>
+		</b-alert>
+		<div v-html="$t('hWelcome', { version: compatVersion })"></div>
 		<h3 class='mt-3'>{{ $t('hTLog') }}</h3>
 		<ul>
 			<li v-for='(entry, index) in changelogEntries' :key='index'>
@@ -29,9 +33,10 @@ export default class WelcomePage extends Vue {
 				const y = parseInt(key.slice(4, 8), 10)
 				const m = parseInt(key.slice(8, 10), 10)
 				const d = parseInt(key.slice(10, 12), 10)
-				entries.push({date: new Date(y, m - 1, d), text: this.$t(key)})
+				entries.push({ date: new Date(y, m - 1, d), text: this.$t(key) })
 			}
 		}
+		entries.push({ date: new Date(2023, 10, 6), text: "(Saajan Maslanka) Added Export Functionality" })
 		return entries
 	}
 

@@ -57,6 +57,9 @@
 					</i18n>
 					<b-link href='#' v-b-modal.credits-modal>{{ $t('credTitle') }}</b-link>
 				</p>
+				<p class="mb-2">
+					Modified by <a href='https://www.saajanm.com'>Saajan Maslanka</a>
+				</p>
 				<p class='mb-2'>
 					{{ $t('footerDonate') }}
 					<a href='https://paypal.me/trashcurl'>PayPal.me</a>

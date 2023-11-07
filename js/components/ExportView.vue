@@ -23,7 +23,10 @@
 <template>
     <div>
         <b-alert show>
-            This feature is highly experimental. Many features are a work in progress and not guaranteed to work.
+            This feature is highly experimental. Many features are a work in progress and may be disabled.
+        </b-alert>
+        <b-alert show>
+            Make sure your seed is not empty!
         </b-alert>
         <b-form class='border rounded p-3'>
             <h5>Export Options</h5>
@@ -39,8 +42,7 @@
             <b-form-group label="Export Inclusions"
                 description="All features you wish to be in the export. Certain selections may result in multiple files generated."
                 label-cols-sm='4'>
-                <b-form-checkbox-group v-model="selectedFeatures" :options="
-                    FEATURES.map(x => { return { 'text': kebabToTitle(x), 'value': x } })">
+                <b-form-checkbox-group v-model="selectedFeatures" :options="FEATURES">
                 </b-form-checkbox-group>
             </b-form-group>
             <b-form-group label="Export Format" description="The file format of the export(s)." label-cols-sm='4'>
@@ -58,13 +60,18 @@
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import { Forecast, Weather } from '../model';
 import { kebabToTitle } from '../utils';
-import App from './App.vue';
-import { features } from 'process';
+import { SpecialCloud } from '../../pkg/index';
 
 const FEATURES = [
-    "weather",
-    "aurora-borealis",
-    "meteor-showers"
+    {
+        value: "weather", text: "Weather"
+    },
+    {
+        value: "aurora-borealis", text: "Aurora Borealis (WIP)", disabled: true
+    },
+    {
+        value: "meteor-showers", text: "Meteor Showers (WIP)", disabled: true
+    }
 ] as const
 
 const FORMATS = [
@@ -72,7 +79,7 @@ const FORMATS = [
         value: "csv", text: "CSV", mime: "text/csv"
     },
     {
-        value: "ics", text: "ICS (iCal)", mime: "text/calendar"
+        value: "ics", text: "ICS (iCal) [NOT YET SUPPORTED]", mime: "text/calendar", disabled: true
     }
 ] as const
 
@@ -89,7 +96,7 @@ export default class ExportView extends Vue {
 
     startDate: Date = new Date(new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toDateString())
     endDate: Date = new Date(new Date().toDateString())
-    selectedFeatures: typeof FEATURES[number][] = []
+    selectedFeatures: typeof FEATURES[number]["value"][] = []
     selectedFormat: typeof FORMATS[number]["value"] = "csv"
     progress: number = -1
     progressIntervalID: NodeJS.Timeout | null = null;
@@ -113,23 +120,36 @@ export default class ExportView extends Vue {
             var end = this.endDate.toDateString().split(" ").join("_");
             var fileName = `meteonook_export_${name}_from_${start}_to_${end}_${this.selectedFeatures[i]}.${this.selectedFormat}`
 
+            if (this.selectedFormat == "ics") {
+                alert("Export Type (ICS/iCal) not supported / WIP")
+                break;
+            };
+
             if (this.selectedFeatures[i] == "weather") {
-                data[this.selectedFeatures[i]] = this.generateWeatherBlob(internalForecast, MIMES[this.selectedFormat])
+                data[fileName] = this.generateWeatherBlob(internalForecast, MIMES[this.selectedFormat])
+            } else if (this.selectedFeatures[i] == "aurora-borealis") {
+                alert("MeteoNook Feature (Aurora Borealis) not support supported / WIP")
+            } else if (this.selectedFeatures[i] == "meteor-showers") {
+                alert("MeteoNook Feature (Meteor Showers) not support supported / WIP")
             }
             this.setProgress(10 + (i + 1) / this.selectedFeatures.length * 80);
         }
 
-        //Save Files
-        for (var key in data) {
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(data[key]);
-            link.download = key;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            // link.remove();
-        }
-        this.setProgress(100)
-        this.resetSubmitUi()
+        setTimeout(() => {
+            var i = 0;
+            //Save Files
+            for (var key in data) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(data[key]);
+                link.download = key;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                // link.remove();
+                this.setProgress(85 + i / Object.keys(data).length)
+            }
+            this.setProgress(100)
+            this.resetSubmitUi()
+        }, 1000)
     }
 
     generateWeatherBlob(internalForecast: Forecast, mime: typeof MIMES[FORMAT_TYPES]): Blob {
@@ -145,7 +165,7 @@ export default class ExportView extends Vue {
             minute: "2-digit"
         })
         if (mime == "text/csv") {
-            data = "Date,Time,Wind Power,Weather\n"
+            data = "Date,Time,Wind Power,Weather,Special Cloud,Any Fog,Water Fog,Heavy Fog,Rainbow Count\n"
             while (internalForecast.year < this.endDate.getFullYear() || internalForecast.month - 1 <= this.endDate.getMonth()) {
                 var currMonth = internalForecast.currentMonth;
                 for (var day of currMonth.days) {
@@ -155,10 +175,15 @@ export default class ExportView extends Vue {
                     for (var i = 0; i < day.weather.length; i++) {
                         var timestamp = new Date(day.date);
                         timestamp.setHours(i);
-                        timestamp = internalForecast.add5hr(timestamp)
-                        var windPower = day.windPower[i]
-                        var weather = Weather[day.weather[i]]
-                        data += `${prefix},${timeFormatter.format(timestamp)},${windPower},${weather}\n`
+                        timestamp = internalForecast.add5hr(timestamp);
+                        var windPower = day.windPower[i];
+                        var weather = Weather[day.weather[i]];
+                        var specialCloudInfo = SpecialCloud[day.specialClouds[i]]
+                        var waterFog = i == 2 && day.waterFog ? "TRUE" : "FALSE";
+                        var heavyFog = i == 2 && day.heavyFog ? "TRUE" : "FALSE";
+                        var anyFog = i == 2 && (day.waterFog || day.heavyFog) ? "TRUE" : "FALSE";
+                        var rainbowCount = i + 5 == day.rainbowHour ? day.rainbowCount : 0;
+                        data += `${prefix},${timeFormatter.format(timestamp)},${windPower},${weather},${specialCloudInfo},${anyFog},${waterFog},${heavyFog},${rainbowCount}\n`
                         prefix = ""
                     }
                 }

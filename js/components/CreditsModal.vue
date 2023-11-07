@@ -5,9 +5,12 @@
 				<a href='https://www.gnu.org/licenses/agpl-3.0.en.html'>GNU Affero General Public License 3.0</a>
 			</template>
 			<template v-slot:repo>
-				<a href='https://github.com/Treeki/MeteoNook'>github.com/Treeki/MeteoNook</a>
+				<a href='https://github.com/SaajanM/MeteoNook'>github.com/SaajanM/MeteoNook</a>
 			</template>
 		</i18n>
+		<p>
+			This is a fork of <a href="https://github.com/Treeki/MeteoNook">https://github.com/Treeki/MeteoNook</a>
+		</p>
 		<p class='font-weight-bold'>{{ $t('credThank1') }}</p>
 		<ul>
 			<li>
