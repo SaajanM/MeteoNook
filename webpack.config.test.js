@@ -11,7 +11,8 @@ module.exports = {
 	},
 	output: {
 		path: dist,
-		filename: '[name].js'
+		filename: '[name].js',
+		hashFunction: 'sha512'
 	},
 	resolve: {
 		extensions: ['.ts', '.js'],
@@ -22,7 +23,7 @@ module.exports = {
 				test: /\.ts$/,
 				loader: 'ts-loader',
 				exclude: /node_modules/,
-				options: {onlyCompileBundledFiles: true}
+				options: { onlyCompileBundledFiles: true }
 			},
 		]
 	},

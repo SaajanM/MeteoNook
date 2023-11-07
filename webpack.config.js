@@ -12,7 +12,7 @@ const { DefinePlugin } = require('webpack')
 
 const gitCommitShort = child_process.execSync('git rev-parse --short HEAD').toString().trim()
 const gitCommitHash = child_process.execSync('git rev-parse HEAD').toString().trim()
-const gitURL = 'https://github.com/Treeki/MeteoNook/commit/' + gitCommitHash
+const gitURL = 'https://github.com/SaajanM/MeteoNook/commit/' + gitCommitHash
 const gitCommitStamp = parseInt(child_process.execSync('git log -1 --date=unix --format=%cd').toString().trim(), 10)
 
 const dist = path.resolve(__dirname, 'dist')
@@ -25,7 +25,8 @@ module.exports = {
 	output: {
 		path: dist,
 		filename: '[name].[contenthash].js',
-		chunkFilename: '[name].[contenthash].js'
+		chunkFilename: '[name].[contenthash].js',
+		hashFunction: 'sha512'
 	},
 	devServer: {
 		contentBase: dist,
@@ -39,16 +40,16 @@ module.exports = {
 				test: /\.css$/i,
 				use: [
 					//{loader: 'micro-style-loader'},
-					{loader: MiniCssExtractPlugin.loader, options: {esModule: true}},
-					{loader: 'css-loader', options: {modules: false, esModule: true}},
+					{ loader: MiniCssExtractPlugin.loader, options: { esModule: true } },
+					{ loader: 'css-loader', options: { modules: false, esModule: true } },
 				]
 			},
 			{
 				test: /\.s[ac]ss$/i,
 				use: [
 					//{loader: 'micro-style-loader'},
-					{loader: MiniCssExtractPlugin.loader, options: {esModule: true}},
-					{loader: 'css-loader', options: {modules: false, esModule: true}},
+					{ loader: MiniCssExtractPlugin.loader, options: { esModule: true } },
+					{ loader: 'css-loader', options: { modules: false, esModule: true } },
 					'sass-loader',
 				]
 			},
@@ -60,7 +61,7 @@ module.exports = {
 				test: /\.ts?$/,
 				loader: 'ts-loader',
 				exclude: /node_modules/,
-				options: {appendTsSuffixTo: [/\.vue$/]}
+				options: { appendTsSuffixTo: [/\.vue$/] }
 			},
 		]
 	},
